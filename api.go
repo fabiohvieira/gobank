@@ -42,21 +42,26 @@ func (s *APIServer) Run() {
 }
 
 func (s *APIServer) handleLogin(w http.ResponseWriter, r *http.Request) error {
-	email := r.FormValue("email")
-	password := r.FormValue("password")
-
-	if email == "fabio@oncore.com.br" && password == "123456" {
-		token, err := createJWT(&Account{
-			Number: 123456789,
-		})
-		if err != nil {
-			return err
-		}
-
-		return WriteJSON(w, http.StatusOK, map[string]string{
-			"token": token,
-		})
+	var req LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return err
 	}
+
+	_, err := s.store.GetAccountByNumber(req.Number)
+	if err != nil {
+		return err
+	}
+	//
+	//if req.Number == account.Number && bcrypt.GenerateFromPassword(req.Password) == account.EncryptedPassword {
+	//	token, err := createJWT(account)
+	//	if err != nil {
+	//		return err
+	//	}
+	//
+	//	return WriteJSON(w, http.StatusOK, map[string]string{
+	//		"token": token,
+	//	})
+	//}
 
 	return WriteJSON(w, http.StatusUnauthorized, ApiError{Error: "unauthorized"})
 }
@@ -99,16 +104,14 @@ func (s *APIServer) handleCreateAccount(w http.ResponseWriter, r *http.Request) 
 	if err := json.NewDecoder(r.Body).Decode(&accRequest); err != nil {
 		return err
 	}
-	account := NewAccount(accRequest.FirstName, accRequest.LastName)
-	if err := s.store.CreateAccount(account); err != nil {
-		return err
-	}
-
-	tokenString, err := createJWT(account)
+	account, err := NewAccount(accRequest.FirstName, accRequest.LastName, accRequest.Password)
 	if err != nil {
 		return err
 	}
-	fmt.Println(tokenString)
+
+	if err := s.store.CreateAccount(account); err != nil {
+		return err
+	}
 
 	return WriteJSON(w, http.StatusOK, account)
 }
