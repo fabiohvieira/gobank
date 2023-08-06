@@ -1,5 +1,5 @@
 build:
-	@go build -o bin/gobank
+	@go build -o gobank cmd/gobank/main.go
 
 run: build docker-up
 	@./bin/gobank

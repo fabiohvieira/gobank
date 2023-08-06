@@ -3,11 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"gobank/internal"
 	"log"
 )
 
-func seedAccount(store Storage, fname, lname, pw string) *Account {
-	acc, err := NewAccount(fname, lname, pw)
+func seedAccount(store internal.Storage, fname, lname, pw string) *internal.Account {
+	acc, err := internal.NewAccount(fname, lname, pw)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -21,7 +22,7 @@ func seedAccount(store Storage, fname, lname, pw string) *Account {
 	return acc
 }
 
-func seedAccounts(store Storage) {
+func seedAccounts(store internal.Storage) {
 	seedAccount(store, "John", "Doe", "123456")
 	seedAccount(store, "Jane", "Doe", "123456")
 }
@@ -30,7 +31,7 @@ func main() {
 	seed := flag.Bool("seed", false, "seed the database")
 	flag.Parse()
 
-	store := NewPostgresStore()
+	store := internal.NewPostgresStore()
 
 	if err := store.Init(); err != nil {
 		log.Fatal(err)
@@ -41,6 +42,6 @@ func main() {
 		seedAccounts(store)
 	}
 
-	server := NewAPIServer(":8080", store)
+	server := internal.NewAPIServer(":8080", store)
 	server.Run()
 }
