@@ -1,8 +1,11 @@
 build:
 	@go build -o bin/gobank
 
-run: build
+run: build docker-up
 	@./bin/gobank
 
 test:
 	@go test -v ./...
+
+docker-up:
+	@docker-compose up -d
