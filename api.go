@@ -47,23 +47,26 @@ func (s *APIServer) handleLogin(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	_, err := s.store.GetAccountByNumber(req.Number)
+	account, err := s.store.GetAccountByNumber(req.Number)
 	if err != nil {
 		return err
 	}
-	//
-	//if req.Number == account.Number && bcrypt.GenerateFromPassword(req.Password) == account.EncryptedPassword {
-	//	token, err := createJWT(account)
-	//	if err != nil {
-	//		return err
-	//	}
-	//
-	//	return WriteJSON(w, http.StatusOK, map[string]string{
-	//		"token": token,
-	//	})
-	//}
 
-	return WriteJSON(w, http.StatusUnauthorized, ApiError{Error: "unauthorized"})
+	if !account.ValidPassword(req.Password) {
+		return WriteJSON(w, http.StatusUnauthorized, ApiError{Error: "unauthorized"})
+	}
+
+	token, err := createJWT(account)
+	if err != nil {
+		return err
+	}
+
+	resp := LoginResponse{
+		Number: account.Number,
+		Token:  token,
+	}
+
+	return WriteJSON(w, http.StatusOK, resp)
 }
 
 func (s *APIServer) handleAccount(w http.ResponseWriter, r *http.Request) error {

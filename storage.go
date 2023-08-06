@@ -120,8 +120,14 @@ func (s *PostgresStore) GetAccounts() ([]*Account, error) {
 
 func scanIntoAccount(rows *sql.Rows) (*Account, error) {
 	account := &Account{}
-	if err := rows.Scan(&account.ID, &account.FirstName, &account.LastName, &account.Number, &account.Balance, &account.CreatedAt); err != nil {
-		return nil, err
-	}
-	return account, nil
+	err := rows.Scan(
+		&account.ID,
+		&account.FirstName,
+		&account.LastName,
+		&account.Number,
+		&account.EncryptedPassword,
+		&account.Balance,
+		&account.CreatedAt)
+
+	return account, err
 }
